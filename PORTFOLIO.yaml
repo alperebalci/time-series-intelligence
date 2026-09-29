@@ -1,0 +1,12 @@
+schema_version: 1
+repository: time-series-intelligence
+role: standalone
+axis: standalone
+area: time-series
+status: active
+owner: jorsacademy
+projects: []
+conventions:
+  provenance_records: false
+  reproducibility_expected: true
+  benchmark_assumptions_documented: true
