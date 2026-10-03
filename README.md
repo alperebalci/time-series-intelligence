@@ -13,7 +13,7 @@ The repository contains four workflows:
 1. a small synthetic end-to-end demo,
 2. a multi-model benchmark using real US macroeconomic data packaged with `statsmodels`,
 3. a production-like evaluator workflow with rolling retraining and sliding/expanding training windows, and
-4. a full **model × retraining-policy matrix** for walk-forward comparison.
+4. a full **model × retraining-policy matrix** for walk-forward comparison, and\n5. a **decision-focused newsvendor benchmark** that compares point forecasts with critical-fractile quantile forecasts using downstream ordering cost.
 
 ## What this repository demonstrates
 
@@ -29,7 +29,7 @@ The repository contains four workflows:
 - Model runtime measurement
 - Reproducible synthetic data generation
 - A real-data benchmark with no external data download
-- CSV benchmark tables and PNG comparison plots
+- CSV benchmark tables and PNG comparison plots\n- Newsvendor critical-fractile quantile regression with pinball loss\n- Decision-cost evaluation alongside RMSE, fill rate, and stockout rate
 
 ## Models benchmarked
 
@@ -105,6 +105,30 @@ It creates:
 - `artifacts/anomaly_benchmark.png` — true and detected anomalies
 
 The benchmark is fault-tolerant: if an optional model fails because of a platform-specific dependency, the remaining models still run and the failure is recorded in the `status` column.
+
+## Run the decision-focused newsvendor benchmark
+
+```bash
+python -m src.newsvendor_benchmark
+```
+
+This workflow generates intermittent daily demand with promotion effects, fits a point-mean gradient-boosting model and a quantile gradient-boosting model, and evaluates both as ordering policies. With underage cost `c_u` and overage cost `c_o`, the benchmark uses the newsvendor critical fractile
+
+```text
+tau = c_u / (c_u + c_o)
+```
+
+and trains the decision-aware model directly at quantile `tau` using pinball loss.
+
+The key comparison is intentionally not only forecast error. The output reports RMSE, pinball loss, mean and total newsvendor cost, fill rate, stockout rate, and mean order quantity. This makes it possible for a model with slightly worse RMSE to be preferred when it produces materially better operational decisions under asymmetric costs.
+
+It creates:
+
+- `artifacts/newsvendor_forecast_benchmark.csv`
+- `artifacts/newsvendor_forecast_predictions.csv`
+- `artifacts/newsvendor_forecast_benchmark.png`
+
+Pretrained foundation models such as Chronos, TimesFM, or Moirai are deliberately not hard dependencies here because model-weight downloads would make the core benchmark network-dependent. Their forecasts can be evaluated with the same `newsvendor_cost` and `pinball_loss` functions, which keeps model selection separate from the downstream decision test.
 
 ## Run the production-like backtest
 
@@ -242,4 +266,4 @@ The upstream `salesforce/Merlion` repository is archived and read-only, so this 
 - Merlion source: https://github.com/salesforce/Merlion
 - Merlion documentation: https://opensource.salesforce.com/Merlion/
 - Merlion technical report: https://arxiv.org/abs/2109.09265
-- statsmodels macrodata dataset: https://www.statsmodels.org/stable/datasets/generated/macrodata.html
+- statsmodels macrodata dataset: https://www.statsmodels.org/stable/datasets/generated/macrodata.html\n- Makridakis, Spiliotis, Assimakopoulos et al., *The M5 accuracy competition: Results, findings and conclusions*, International Journal of Forecasting, 2022.
